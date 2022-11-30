@@ -1,0 +1,230 @@
+import re
+import os
+
+def Validating_Register():
+    l=checking_mailID()
+    a=l[0]
+    mail=l[1]
+    if(a=="1"):
+      l1=checking_password()
+      a1=l1[0]
+      password=l1[1]
+      if(a1 == '11'):
+        appending_in_file(mail,password)
+
+def appending_in_file(mail,password):
+      file1 = open("DB.txt",'a')
+      file1.write(mail+" "+password+f"\n")
+      file1.close()
+      print("*********!!! Sucessfully Registered !!! *********")
+      moving_to_login()
+
+def checking_mailID():
+  a=""
+  mail = input("Please enter mail ID: ")
+  file1 = open("DB.txt",'r')
+  temp = (file1.read())
+  val = ""
+  val1=True
+  lst=[]
+  if(mail in temp):
+    pattern_mail1 ='^[a-z0-9]+[\._]?[ a-z0-9]+[@]\w+[. ]\w{2,3}$'
+    res1 = re.findall(pattern_mail1,mail)
+    if(len(res1)!=0):
+      if(res1[-1]==mail):
+        a="1"
+        val1=False
+        print('''Mail ID is already registered,
+1.Try another mail id
+2.Try Login''')
+        ip3= input()
+        if(ip3=="1"):
+          checking_mailID()
+        elif(ip3=="2"):
+          Login()
+        else:
+          print("you have entered invalid entry")
+    else:
+      val1=True
+  if(val1==True):
+    if(mail[0].isalpha() == True ):  
+      pattern_mail ='^[a-z0-9]+[\._]?[ a-z0-9]+[@]\w+[. ]\w{2,3}$'
+      res = re.findall(pattern_mail,mail)
+      val = len(str(res))-4
+    if(val == len(mail)):
+      print("*************************************************")
+      a = "1"
+      lst.append(a)
+      lst.append(mail)
+      return lst     
+      
+    else:
+      print("Mail ID you have entered is Invalid,try again with valid mail ID...")
+      return checking_mailID()
+
+def checking_password():
+  a1=""
+  password = input("Please enter Password: ")
+  reg = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{5,16}$"
+  lst=[]
+  pat = re.compile(reg)
+  mat = re.search(pat, password)
+  if mat:
+    print("*************************************************")
+    a1 = "11"
+    lst.append(a1)
+    lst.append(password)
+    return lst
+  else:
+    print('''***********!!!__Invalid password__!!!**********
+Note: Must have minimum one special character, one digit, one uppercase, one lowercase character,5 < password length > 16               
+Please try again !!! ''')
+    return checking_password()
+
+def mail_id_existing(mail):
+  val=mail
+  file = open("DB.txt",'r')
+  s=(file.read())
+  file.close()
+  s2=str(str(s.split("\n")).split(" "))
+  result=0
+  s3=s2.replace("[","").replace("]","").replace("'","").replace('"',"").replace(",,",",").split(",")
+  for i in range(0,len(s3)):
+    if(str(s3[i]).replace(" ","")==val):
+      result=1
+  if(result==1):
+    return 1
+  else:
+    return 0
+
+
+def Login():
+  mail = input("Please enter Registered mail ID: ")
+  password = input("Please enter Registered Password: ")
+  file1 =open("DB.txt",'a')
+  file1 = open("DB.txt",'r')
+  temp = (file1.read())
+  check_pass= mail+" "+password
+  c=0
+  res=mail_id_existing(mail)
+  print("value of res: ",res)
+  if(res==1):
+    if(check_pass in temp):
+      print("***********!!!! Login Sucessful !!!!*************")
+    else:
+      print('''*********!!!! Incorrect Password !!!!**********
+Would like to select 
+1. Forget password 
+2. Reset password
+3. Exit ''')
+      global user_no
+      user_no=input()
+      if(user_no=='1'):
+        forget_password(mail,temp) 
+      elif(user_no=='2'):
+        deleting_existing_entry(mail)
+        updating_new_pass(mail)
+      elif(user_no=='3'):
+        print("Exiting process....")
+      else:
+        print("Invalid entry try agin later !!!")
+
+  else:
+    print('''Mail is not registered !!,
+Would you like to 
+1. login again 
+2. Register new account''')
+    ip=input()
+    if(ip=='1'):
+      moving_to_login()
+    else:
+      moving_to_reg()
+    
+def deleting_existing_entry(mail):
+
+ reg_mail  = mail
+ with open("DB.txt", "r") as input:
+    with open("temp.txt", "w") as output:
+      for line in input:
+        if not line.strip("\n").startswith(reg_mail):
+          output.write(line)
+ os.replace('temp.txt', 'DB.txt')
+
+def updating_new_pass(mail):
+  reg_mail = mail
+  print("For Reseting password.....")
+  mail_new=input("please enter Registered mail: ")
+  password_new=""
+  if(reg_mail == mail_new):
+   a1,t=checking_password()
+   if(a1=="11"):
+    file1 = open("DB.txt",'a')
+    file1.write(mail+" "+t+f"\n")
+    file1.close()
+    print("!!! Updated Sucussfully...!!!")
+    moving_to_login()
+  else:
+    print(input('''!!!Mail ID is not Registered!!!,
+Would you like to.....
+1. Try again entering mail ID 
+2. Register new acc'''))
+    ip1=input()
+    if(ip1=='2'):
+      moving_to_reg()
+    elif(ip1=='1'):
+      updating_new_pass()
+
+def forget_password(mail,temp):
+  mail1= mail
+  c=0
+  temp3 =temp
+  lst_of_temp = temp3.split("\n")
+  for i in range (0,len(lst_of_temp)):
+    if(mail1 in lst_of_temp[i]):
+      c=1
+      temp1=lst_of_temp[i].split(" ")
+      temp2= str(temp1).split(",")
+      t3=temp2[1].replace(']','')
+      print("your password is: ",t3.replace("'",""))
+      moving_to_login()
+  if(c==0):
+    print("Mail ID is not registered, Try Register!!")
+    moving_to_reg()
+  
+def moving_to_reg():
+  ip=input("Would you like to Register: yes/no :")
+  if(ip=="yes"):
+    Validating_Register()
+  elif(ip=='no'):
+    print("Exiting process.....")
+
+def moving_to_login():
+  ip=input("Would you like to Login: yes/no :")
+  if(ip=="yes"):
+    Login()
+  elif(ip=='no'):
+    print("Exiting process.....")
+
+#Main call
+
+print('''*************************************************
+            !!! WELCOME !!!
+Select from the options listed below:            
+1. Register
+2. Login
+3. Exit
+*************************************************''')
+print("Please enter your option as 1 / 2 / 3: ",end="")
+option= int(input())
+file1 = open("DB.txt", "a")
+
+if(option == 1):
+  Validating_Register()
+  print("*************************************************")
+elif(option == 2):
+  Login()
+  print("*************************************************")
+elif(option == 3):
+  print("Exiting process.....")
+
+file1.close()
